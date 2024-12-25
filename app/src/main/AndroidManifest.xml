@@ -12,69 +12,41 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Project_1224"
         tools:targetApi="31">
-        <activity
-            android:name=".select_function"
-            android:exported="false" />
-        <activity
-            android:name=".select_Function"
-            android:exported="false" />
-        <activity
-            android:name=".Chart"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".SelectFunctions"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".SelectFunction"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".MyDBHelper"
-            android:exported="false" />
-        <activity
-            android:name=".bill"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".ViewLocation"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <!-- MainActivity 為啟動畫面 -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- Select Function Activity -->
+        <activity
+            android:name=".select_function"
+            android:exported="true" />
+
+        <!-- Chart Activity -->
+        <activity
+            android:name=".Chart"
+            android:exported="true" />
+
+        <!-- Bill Activity -->
+        <activity
+            android:name=".bill"
+            android:exported="true" />
+
+        <!-- View Location Activity -->
+        <activity
+            android:name=".ViewLocation"
+            android:exported="true" />
+
+        <!-- MyDBHelper 為內部輔助類，不需啟動頁面 -->
+        <activity
+            android:name=".MyDBHelper"
+            android:exported="false" />
+
+    </application>
 </manifest>
