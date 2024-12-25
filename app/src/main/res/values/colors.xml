@@ -2,4 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="pie_color1">#A26360</color> <!-- 第一個顏色 -->
+    <color name="pie_color2">#D4A29C</color> <!-- 第二個顏色 -->
+    <color name="pie_color3">#E8B298</color> <!-- 第三個顏色 -->
+    <color name="pie_color4">#EDCC8B</color> <!-- 第四個顏色 -->
+    <color name="pie_color5">#BDD1C5</color> <!-- 第五個顏色 -->
+    <color name="pie_color6">#9DAAA2</color> <!-- 第六個顏色 -->
 </resources>
