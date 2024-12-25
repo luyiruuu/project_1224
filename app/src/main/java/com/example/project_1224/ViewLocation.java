@@ -2,23 +2,47 @@ package com.example.project_1224;
 
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-public class ViewLocation extends AppCompatActivity {
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.List;
+
+public class ViewLocation extends AppCompatActivity implements OnMapReadyCallback {
+
+    private List<LatLng> selectedLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.view_location);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        // 使用靜態變數直接獲取資料
+        selectedLocations = bill.selectedLocations;
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapFragment);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        if (selectedLocations == null || selectedLocations.isEmpty()) {
+            return;
+        }
+
+        for (LatLng location : selectedLocations) {
+            googleMap.addMarker(new MarkerOptions().position(location));
+        }
+
+        LatLng firstLocation = selectedLocations.get(0);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, 13));
     }
 }

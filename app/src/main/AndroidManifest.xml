@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -19,34 +23,31 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Select Function Activity -->
+        </activity> <!-- Select Function Activity -->
         <activity
             android:name=".select_function"
-            android:exported="true" />
-
-        <!-- Chart Activity -->
+            android:exported="true" /> <!-- Chart Activity -->
         <activity
             android:name=".Chart"
-            android:exported="true" />
-
-        <!-- Bill Activity -->
+            android:exported="true" /> <!-- Bill Activity -->
         <activity
             android:name=".bill"
-            android:exported="true" />
-
-        <!-- View Location Activity -->
+            android:exported="true" /> <!-- View Location Activity -->
         <activity
             android:name=".ViewLocation"
-            android:exported="true" />
-
-        <!-- MyDBHelper 為內部輔助類，不需啟動頁面 -->
+            android:exported="true" /> <!-- MyDBHelper 為內部輔助類，不需啟動頁面 -->
         <activity
             android:name=".MyDBHelper"
-            android:exported="false" />
-
+            android:exported="false" /> <!-- 使用 Google 地圖 API 金鑰 -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="MAPS_API_KEY" /> <!-- 支援 Apache HTTP -->
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
     </application>
+
 </manifest>
