@@ -1,6 +1,7 @@
 package com.example.project_1224;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -67,11 +68,17 @@ public class bill extends AppCompatActivity {
         // 初始化 Spinners
         initializeSpinners();
 
+        // 加載已儲存的資料到清單
+        loadSavedItems();
+
         // 新增地點按鈕功能
         btn_add_location.setOnClickListener(v -> promptUserToSelectLocation());
 
         // 插入功能
         btn_insert.setOnClickListener(view -> handleInsertAction());
+
+        // 刪除功能
+        btn_delete.setOnClickListener(view -> handleDeleteAction());
     }
 
     private void initializeUI() {
@@ -130,6 +137,22 @@ public class bill extends AppCompatActivity {
         return numbers;
     }
 
+    private void loadSavedItems() {
+        Cursor cursor = dbrw.rawQuery("SELECT book, price, year, month, day FROM myTable", null);
+        while (cursor.moveToNext()) {
+            String type = cursor.getString(cursor.getColumnIndexOrThrow("book"));
+            int price = cursor.getInt(cursor.getColumnIndexOrThrow("price"));
+            int year = cursor.getInt(cursor.getColumnIndexOrThrow("year"));
+            int month = cursor.getInt(cursor.getColumnIndexOrThrow("month"));
+            int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
+
+            String item = type + " - " + price + "元 (" + year + "/" + month + "/" + day + ")";
+            items.add(item); // 將資料添加到清單
+        }
+        cursor.close();
+        adapter.notifyDataSetChanged(); // 通知 ListView 更新
+    }
+
     private void handleInsertAction() {
         String type = getSelectedType();
         String price = ed_price.getText().toString();
@@ -157,6 +180,30 @@ public class bill extends AppCompatActivity {
             ed_price.setText(""); // 清空輸入框
         } catch (Exception e) {
             Toast.makeText(bill.this, "新增資料失敗: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleDeleteAction() {
+        if (items.isEmpty()) {
+            Toast.makeText(this, "目前沒有資料可刪除", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 刪除第一筆資料作為範例
+        try {
+            Cursor cursor = dbrw.rawQuery("SELECT id FROM myTable LIMIT 1", null);
+            if (cursor.moveToFirst()) {
+                int id = cursor.getInt(0);
+                dbrw.execSQL("DELETE FROM myTable WHERE id = ?", new Object[]{id});
+
+                items.remove(0); // 同時從 ListView 的資料中移除
+                adapter.notifyDataSetChanged();
+
+                Toast.makeText(this, "成功刪除第一筆資料", Toast.LENGTH_SHORT).show();
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Toast.makeText(this, "刪除資料失敗: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
