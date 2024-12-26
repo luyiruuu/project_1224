@@ -25,24 +25,43 @@ public class Chart extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chart);
 
-        // 初始化 PieChart
         pieChart = findViewById(R.id.pieChart);
         dbrw = new MyDBHelper(this).getReadableDatabase();
 
-        loadChartData(); // 加載圓餅圖數據
+        initializePieChart(); // 初始化 PieChart 設定
+        if (isTableEmpty()) {
+            initializeEmptyChart(); // 初始化空的圓餅圖
+        } else {
+            loadChartData(); // 加載數據並顯示圖表
+        }
+    }
+
+    private void initializePieChart() {
+        pieChart.setUsePercentValues(true); // 顯示百分比
+        pieChart.getDescription().setEnabled(false); // 禁用描述
+        pieChart.setHoleRadius(40f); // 設定圓心洞的半徑
+        pieChart.setTransparentCircleRadius(45f); // 設置透明圈半徑
+        pieChart.setRotationEnabled(true); // 啟用旋轉
+        pieChart.setEntryLabelTextSize(12f); // 設置條目標籤字體大小
+    }
+
+    private void initializeEmptyChart() {
+        PieDataSet dataSet = new PieDataSet(new ArrayList<>(), "暫無數據");
+        dataSet.setValueTextSize(14f);
+        PieData data = new PieData(dataSet);
+        pieChart.setData(data);
+        pieChart.invalidate(); // 刷新圖表
+    }
+
+    private boolean isTableEmpty() {
+        Cursor cursor = dbrw.rawQuery("SELECT COUNT(*) FROM myTable", null);
+        cursor.moveToFirst();
+        int rowCount = cursor.getInt(0);
+        cursor.close();
+        return rowCount == 0;
     }
 
     private void loadChartData() {
-        // 檢查資料庫表格是否存在
-        Cursor checkCursor = dbrw.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='myTable'", null);
-        if (checkCursor.getCount() == 0) {
-            Toast.makeText(this, "資料庫表格不存在！", Toast.LENGTH_SHORT).show();
-            checkCursor.close();
-            return;
-        }
-        checkCursor.close();
-
-        // 獲取數據
         HashMap<String, Integer> categoryData = new HashMap<>();
         Cursor cursor = dbrw.rawQuery("SELECT book, SUM(price) as total FROM myTable GROUP BY book", null);
 
@@ -53,32 +72,36 @@ public class Chart extends AppCompatActivity {
         }
         cursor.close();
 
-        // 準備 PieChart 數據
         ArrayList<PieEntry> entries = new ArrayList<>();
         for (String key : categoryData.keySet()) {
             entries.add(new PieEntry(categoryData.get(key), key));
         }
 
         if (entries.isEmpty()) {
-            Toast.makeText(this, "沒有資料可顯示", Toast.LENGTH_SHORT).show();
+            Toast toast = Toast.makeText(this, "沒有資料可顯示", Toast.LENGTH_SHORT);
+            toast.getView().setPadding(10, 10, 10, 10);
+            toast.show();
             return;
         }
 
         PieDataSet dataSet = new PieDataSet(entries, "支出分類");
+        dataSet.setValueTextSize(14f); // 設置數據字體大小
         dataSet.setColors(new int[]{
                 R.color.pie_color1, R.color.pie_color2, R.color.pie_color3,
-                R.color.pie_color4, R.color.pie_color5, R.color.pie_color6}, this);
+                R.color.pie_color4, R.color.pie_color5, R.color.pie_color6
+        }, this);
 
         PieData data = new PieData(dataSet);
-
         pieChart.setData(data);
-        pieChart.setUsePercentValues(true); // 顯示百分比
         pieChart.invalidate(); // 刷新圖表
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        dbrw.close(); // 關閉資料庫
+        if (dbrw != null && dbrw.isOpen()) {
+            dbrw.close();
+        }
     }
 }
+
