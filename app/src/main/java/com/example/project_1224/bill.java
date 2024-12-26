@@ -48,7 +48,9 @@ public class bill extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        dbrw.close(); // 關閉資料庫
+        if (dbrw != null && dbrw.isOpen()) {
+            dbrw.close(); // 關閉資料庫
+        }
     }
 
     @Override
@@ -56,9 +58,23 @@ public class bill extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bill);
 
+        // 初始化資料庫
         dbrw = new MyDBHelper(this).getWritableDatabase();
 
         // 初始化 UI 元件
+        initializeUI();
+
+        // 初始化 Spinners
+        initializeSpinners();
+
+        // 新增地點按鈕功能
+        btn_add_location.setOnClickListener(v -> promptUserToSelectLocation());
+
+        // 插入功能
+        btn_insert.setOnClickListener(view -> handleInsertAction());
+    }
+
+    private void initializeUI() {
         ed_price = findViewById(R.id.ed_price);
         radioButton1 = findViewById(R.id.radioButton1);
         radioButton2 = findViewById(R.id.radioButton2);
@@ -79,22 +95,51 @@ public class bill extends AppCompatActivity {
 
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
         listView.setAdapter(adapter);
+    }
 
-        initializeSpinners();
+    private void initializeSpinners() {
+        ArrayAdapter<String> yearAdapter = createSpinnerAdapter(generateYearList());
+        yearSpinner.setAdapter(yearAdapter);
 
-        // 新增地點按鈕功能
-        btn_add_location.setOnClickListener(v -> promptUserToSelectLocation());
+        ArrayAdapter<String> monthAdapter = createSpinnerAdapter(generateNumberList(1, 12));
+        monthSpinner.setAdapter(monthAdapter);
 
-        // 插入功能
-        btn_insert.setOnClickListener(view -> {
-            String type = getSelectedType();
-            String price = ed_price.getText().toString();
+        ArrayAdapter<String> dayAdapter = createSpinnerAdapter(generateNumberList(1, 31));
+        daySpinner.setAdapter(dayAdapter);
+    }
 
-            if (type == null || price.isEmpty()) {
-                Toast.makeText(bill.this, "欄位請勿留空", Toast.LENGTH_SHORT).show();
-                return;
-            }
+    private ArrayAdapter<String> createSpinnerAdapter(List<String> data) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, data);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return adapter;
+    }
 
+    private List<String> generateYearList() {
+        List<String> years = new ArrayList<>();
+        for (int i = 2023; i <= Calendar.getInstance().get(Calendar.YEAR); i++) {
+            years.add(String.valueOf(i));
+        }
+        return years;
+    }
+
+    private List<String> generateNumberList(int start, int end) {
+        List<String> numbers = new ArrayList<>();
+        for (int i = start; i <= end; i++) {
+            numbers.add(String.valueOf(i));
+        }
+        return numbers;
+    }
+
+    private void handleInsertAction() {
+        String type = getSelectedType();
+        String price = ed_price.getText().toString();
+
+        if (type == null || price.isEmpty()) {
+            Toast.makeText(bill.this, "欄位請勿留空", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
             int year = Integer.parseInt(yearSpinner.getSelectedItem().toString());
             int month = Integer.parseInt(monthSpinner.getSelectedItem().toString());
             int day = Integer.parseInt(daySpinner.getSelectedItem().toString());
@@ -106,39 +151,13 @@ public class bill extends AppCompatActivity {
             // 新增資料到列表
             String item = type + " - " + price + "元 (" + year + "/" + month + "/" + day + ")";
             items.add(item);
-
-            // 通知 adapter 更新
             adapter.notifyDataSetChanged();
 
             Toast.makeText(bill.this, "成功新增：類別 " + type + " 價格 " + price, Toast.LENGTH_SHORT).show();
             ed_price.setText(""); // 清空輸入框
-        });
-    }
-
-    private void initializeSpinners() {
-        ArrayList<String> years = new ArrayList<>();
-        for (int i = 2023; i <= Calendar.getInstance().get(Calendar.YEAR); i++) {
-            years.add(String.valueOf(i));
+        } catch (Exception e) {
+            Toast.makeText(bill.this, "新增資料失敗: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, years);
-        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        yearSpinner.setAdapter(yearAdapter);
-
-        ArrayList<String> months = new ArrayList<>();
-        for (int i = 1; i <= 12; i++) {
-            months.add(String.valueOf(i));
-        }
-        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, months);
-        monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        monthSpinner.setAdapter(monthAdapter);
-
-        ArrayList<String> days = new ArrayList<>();
-        for (int i = 1; i <= 31; i++) {
-            days.add(String.valueOf(i));
-        }
-        ArrayAdapter<String> dayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, days);
-        dayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        daySpinner.setAdapter(dayAdapter);
     }
 
     private String getSelectedType() {
@@ -177,3 +196,4 @@ public class bill extends AppCompatActivity {
         builder.show();
     }
 }
+
