@@ -1,6 +1,10 @@
 package com.example.project_1224;
 
+<<<<<<< HEAD
 import android.content.DialogInterface;
+=======
+import android.content.Intent;
+>>>>>>> 003f14765f4c2260b159c95fbae3ca2d76f59c17
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -85,8 +89,13 @@ public class bill extends AppCompatActivity {
         // 插入功能
         btn_insert.setOnClickListener(view -> handleInsertAction());
 
+<<<<<<< HEAD
         // 列表點擊刪除
         listView.setOnItemClickListener((parent, view, position, id) -> handleDeleteAction(position));
+=======
+        // 刪除功能
+        btn_delete.setOnClickListener(view -> handleDeleteAction());
+>>>>>>> 003f14765f4c2260b159c95fbae3ca2d76f59c17
     }
 
     private void initializeUI() {
@@ -194,6 +203,7 @@ public class bill extends AppCompatActivity {
         }
     }
 
+<<<<<<< HEAD
     private void handleDeleteAction(int position) {
         String item = items.get(position);
         String[] parts = item.split(" - |元 \\(|/|\\)");
@@ -225,6 +235,30 @@ public class bill extends AppCompatActivity {
                 })
                 .setNegativeButton("否", null)
                 .show();
+=======
+    private void handleDeleteAction() {
+        if (items.isEmpty()) {
+            Toast.makeText(this, "目前沒有資料可刪除", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 刪除第一筆資料作為範例
+        try {
+            Cursor cursor = dbrw.rawQuery("SELECT id FROM myTable LIMIT 1", null);
+            if (cursor.moveToFirst()) {
+                int id = cursor.getInt(0);
+                dbrw.execSQL("DELETE FROM myTable WHERE id = ?", new Object[]{id});
+
+                items.remove(0); // 同時從 ListView 的資料中移除
+                adapter.notifyDataSetChanged();
+
+                Toast.makeText(this, "成功刪除第一筆資料", Toast.LENGTH_SHORT).show();
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Toast.makeText(this, "刪除資料失敗: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+>>>>>>> 003f14765f4c2260b159c95fbae3ca2d76f59c17
     }
 
     private String getSelectedType() {
