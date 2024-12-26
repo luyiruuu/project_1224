@@ -1,6 +1,6 @@
 package com.example.project_1224;
 
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -24,8 +25,9 @@ import java.util.List;
 public class bill extends AppCompatActivity {
 
     private EditText ed_price;
+    private RadioGroup radioGroup;
     private RadioButton radioButton1, radioButton2, radioButton3, radioButton4, radioButton5, radioButton6;
-    private Button btn_insert, btn_delete, btn_add_location;
+    private Button btn_insert, btn_add_location;
     private ListView listView;
     private ArrayAdapter<String> adapter;
     private ArrayList<String> items = new ArrayList<>();
@@ -41,7 +43,7 @@ public class bill extends AppCompatActivity {
             new LatLng(25.05591, 121.51970), // 中山商圈
             new LatLng(25.03369, 121.52998)  // 永康商圈
     };
-    private final String[] predefinedLocationNames = {"台北101", "台北車站", "臺北信義區","全家便利商店","7-11","中山商圈","永康商圈"};
+    private final String[] predefinedLocationNames = {"台北101", "台北車站", "臺北信義區", "全家便利商店", "7-11", "中山商圈", "永康商圈"};
     public static final List<LatLng> selectedLocations = new ArrayList<>();
 
     private SQLiteDatabase dbrw;
@@ -77,12 +79,15 @@ public class bill extends AppCompatActivity {
         // 插入功能
         btn_insert.setOnClickListener(view -> handleInsertAction());
 
-        // 刪除功能
-        btn_delete.setOnClickListener(view -> handleDeleteAction());
+        // 列表點擊刪除
+        listView.setOnItemClickListener((parent, view, position, id) -> handleDeleteAction(position));
     }
 
     private void initializeUI() {
         ed_price = findViewById(R.id.ed_price);
+
+        radioGroup = findViewById(R.id.radioGroup); // 初始化 RadioGroup
+
         radioButton1 = findViewById(R.id.radioButton1);
         radioButton2 = findViewById(R.id.radioButton2);
         radioButton3 = findViewById(R.id.radioButton3);
@@ -95,7 +100,6 @@ public class bill extends AppCompatActivity {
         daySpinner = findViewById(R.id.spinner_day);
 
         btn_insert = findViewById(R.id.btn_insert);
-        btn_delete = findViewById(R.id.btn_delete);
         btn_add_location = findViewById(R.id.btn_add_location);
 
         listView = findViewById(R.id.listView);
@@ -178,33 +182,43 @@ public class bill extends AppCompatActivity {
 
             Toast.makeText(bill.this, "成功新增：類別 " + type + " 價格 " + price, Toast.LENGTH_SHORT).show();
             ed_price.setText(""); // 清空輸入框
+            radioGroup.clearCheck(); // 清除選取的 RadioButton
         } catch (Exception e) {
             Toast.makeText(bill.this, "新增資料失敗: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void handleDeleteAction() {
-        if (items.isEmpty()) {
-            Toast.makeText(this, "目前沒有資料可刪除", Toast.LENGTH_SHORT).show();
-            return;
-        }
+    private void handleDeleteAction(int position) {
+        String item = items.get(position);
+        String[] parts = item.split(" - |元 \\(|/|\\)");
+        String type = parts[0];
+        String price = parts[1];
+        String year = parts[2];
+        String month = parts[3];
+        String day = parts[4];
 
-        // 刪除第一筆資料作為範例
-        try {
-            Cursor cursor = dbrw.rawQuery("SELECT id FROM myTable LIMIT 1", null);
-            if (cursor.moveToFirst()) {
-                int id = cursor.getInt(0);
-                dbrw.execSQL("DELETE FROM myTable WHERE id = ?", new Object[]{id});
+        new AlertDialog.Builder(this)
+                .setTitle("確認刪除")
+                .setMessage("確定要刪除選取的項目嗎？")
+                .setPositiveButton("是", (dialog, which) -> {
+                    try {
+                        int rowsAffected = dbrw.delete("myTable",
+                                "book = ? AND price = ? AND year = ? AND month = ? AND day = ?",
+                                new String[]{type, price, year, month, day});
 
-                items.remove(0); // 同時從 ListView 的資料中移除
-                adapter.notifyDataSetChanged();
-
-                Toast.makeText(this, "成功刪除第一筆資料", Toast.LENGTH_SHORT).show();
-            }
-            cursor.close();
-        } catch (Exception e) {
-            Toast.makeText(this, "刪除資料失敗: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+                        if (rowsAffected > 0) {
+                            items.remove(position);
+                            adapter.notifyDataSetChanged();
+                            Toast.makeText(bill.this, "已成功刪除", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(bill.this, "刪除失敗，找不到資料", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(bill.this, "刪除失敗: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("否", null)
+                .show();
     }
 
     private String getSelectedType() {
@@ -220,27 +234,11 @@ public class bill extends AppCompatActivity {
     private void promptUserToSelectLocation() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("選擇地點");
-
-        final Spinner locationSpinner = new Spinner(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,
-                predefinedLocationNames
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        locationSpinner.setAdapter(adapter);
-
-        builder.setView(locationSpinner);
-
-        builder.setPositiveButton("新增標記", (dialog, which) -> {
-            int selectedPosition = locationSpinner.getSelectedItemPosition();
-            LatLng selectedLocation = predefinedLocations[selectedPosition];
-            selectedLocations.add(selectedLocation);
-            Toast.makeText(this, "地點已新增: " + predefinedLocationNames[selectedPosition], Toast.LENGTH_SHORT).show();
+        builder.setItems(predefinedLocationNames, (dialog, which) -> {
+            LatLng selectedLatLng = predefinedLocations[which];
+            selectedLocations.add(selectedLatLng);
+            Toast.makeText(bill.this, "選擇地點：" + predefinedLocationNames[which], Toast.LENGTH_SHORT).show();
         });
-
-        builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
-        builder.show();
+        builder.create().show();
     }
 }
-
