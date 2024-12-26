@@ -1,0 +1,115 @@
+Index: app/src/main/java/com/example/project_1224/bill.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.project_1224;\r\n\r\nimport android.database.Cursor;\r\nimport android.database.sqlite.SQLiteDatabase;\r\nimport android.os.Bundle;\r\nimport android.widget.ArrayAdapter;\r\nimport android.widget.Button;\r\nimport android.widget.EditText;\r\nimport android.widget.ListView;\r\nimport android.widget.RadioButton;\r\nimport android.widget.Spinner;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.Calendar;\r\n\r\npublic class bill extends AppCompatActivity {\r\n\r\n    private EditText ed_price;\r\n    private RadioButton radioButton1, radioButton2, radioButton3, radioButton4, radioButton5, radioButton6;\r\n    private Button  btn_insert, btn_delete;\r\n    private ListView listView;\r\n    private ArrayAdapter<String> adapter;\r\n    private ArrayList<String> items = new ArrayList<>();\r\n    private SQLiteDatabase dbrw;\r\n\r\n    private Spinner yearSpinner, monthSpinner, daySpinner;\r\n\r\n    @Override\r\n    protected void onDestroy() {\r\n        super.onDestroy();\r\n        dbrw.close(); // 關閉資料庫\r\n    }\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.bill);\r\n\r\n        // 初始化 UI 元件\r\n        ed_price = findViewById(R.id.ed_price);\r\n        radioButton1 = findViewById(R.id.radioButton1);\r\n        radioButton2 = findViewById(R.id.radioButton2);\r\n        radioButton3 = findViewById(R.id.radioButton3);\r\n        radioButton4 = findViewById(R.id.radioButton4);\r\n        radioButton5 = findViewById(R.id.radioButton5);\r\n        radioButton6 = findViewById(R.id.radioButton6);\r\n\r\n        yearSpinner = findViewById(R.id.spinner_year);\r\n        monthSpinner = findViewById(R.id.spinner_month);\r\n        daySpinner = findViewById(R.id.spinner_day);\r\n\r\n\r\n        btn_insert = findViewById(R.id.btn_insert);\r\n        btn_delete = findViewById(R.id.btn_delete);\r\n        listView = findViewById(R.id.listView);\r\n\r\n        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);\r\n        listView.setAdapter(adapter);\r\n\r\n        dbrw = new MyDBHelper(this).getWritableDatabase();\r\n\r\n        // 初始化 Spinner 的數據\r\n        initializeSpinners();\r\n\r\n        // 插入功能\r\n        btn_insert.setOnClickListener(view -> {\r\n            String type = getSelectedType();\r\n            String price = ed_price.getText().toString();\r\n\r\n            if (type == null || price.isEmpty()) {\r\n                Toast.makeText(bill.this, \"欄位請勿留空\", Toast.LENGTH_SHORT).show();\r\n                return;\r\n            }\r\n\r\n            // 獲取 Spinner 中的選擇\r\n            int year = Integer.parseInt(yearSpinner.getSelectedItem().toString());\r\n            int month = Integer.parseInt(monthSpinner.getSelectedItem().toString());\r\n            int day = Integer.parseInt(daySpinner.getSelectedItem().toString());\r\n\r\n            try {\r\n                dbrw.execSQL(\"INSERT INTO myTable(book, price, year, month, day) VALUES(?, ?, ?, ?, ?)\",\r\n                        new Object[]{type, price, year, month, day});\r\n                Toast.makeText(bill.this, \"成功新增：類別 \" + type + \" 價格 \" + price, Toast.LENGTH_SHORT).show();\r\n                ed_price.setText(\"\"); // 清空價格輸入\r\n                updateListView(); // 更新 ListView\r\n            } catch (Exception e) {\r\n                e.printStackTrace();\r\n                Toast.makeText(bill.this, \"新增失敗：\" + e.getMessage(), Toast.LENGTH_SHORT).show();\r\n            }\r\n        });\r\n\r\n\r\n\r\n        // 刪除功能\r\n        btn_delete.setOnClickListener(view -> {\r\n            String type = getSelectedType();\r\n            String year = yearSpinner.getSelectedItem().toString();\r\n            String month = monthSpinner.getSelectedItem().toString();\r\n            String day = daySpinner.getSelectedItem().toString();\r\n\r\n            if (type == null) {\r\n                Toast.makeText(bill.this, \"請選擇要刪除的類別\", Toast.LENGTH_SHORT).show();\r\n                return;\r\n            }\r\n\r\n            try {\r\n                int rows = dbrw.delete(\r\n                        \"myTable\",\r\n                        \"book = ? AND year = ? AND month = ? AND day = ?\",\r\n                        new String[]{type, year, month, day}\r\n                );\r\n\r\n                if (rows > 0) {\r\n                    Toast.makeText(bill.this, \"刪除成功：類別 \" + type, Toast.LENGTH_SHORT).show();\r\n                    updateListView(); // 更新 ListView\r\n                } else {\r\n                    Toast.makeText(bill.this, \"刪除失敗：未找到符合條件的記錄\", Toast.LENGTH_SHORT).show();\r\n                }\r\n            } catch (Exception e) {\r\n                e.printStackTrace();\r\n                Toast.makeText(bill.this, \"刪除失敗：\" + e.getMessage(), Toast.LENGTH_SHORT).show();\r\n            }\r\n        });\r\n    }\r\n\r\n    // 初始化 Spinner 的數據\r\n    private void initializeSpinners() {\r\n        // 設置年份範圍\r\n        ArrayList<String> years = new ArrayList<>();\r\n        for (int i = 2023; i <= Calendar.getInstance().get(Calendar.YEAR); i++) {\r\n            years.add(String.valueOf(i));\r\n        }\r\n        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, years);\r\n        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);\r\n        yearSpinner.setAdapter(yearAdapter);\r\n\r\n        // 設置月份範圍\r\n        ArrayList<String> months = new ArrayList<>();\r\n        for (int i = 1; i <= 12; i++) {\r\n            months.add(String.valueOf(i));\r\n        }\r\n        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, months);\r\n        monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);\r\n        monthSpinner.setAdapter(monthAdapter);\r\n\r\n        // 設置日期範圍\r\n        ArrayList<String> days = new ArrayList<>();\r\n        for (int i = 1; i <= 31; i++) {\r\n            days.add(String.valueOf(i));\r\n        }\r\n        ArrayAdapter<String> dayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, days);\r\n        dayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);\r\n        daySpinner.setAdapter(dayAdapter);\r\n    }\r\n\r\n    // 更新 ListView 資料\r\n    private void updateListView() {\r\n        items.clear(); // 清空舊數據\r\n\r\n        Cursor cursor = dbrw.rawQuery(\"SELECT * FROM myTable\", null);\r\n        while (cursor.moveToNext()) {\r\n            String book = cursor.getString(cursor.getColumnIndexOrThrow(\"book\"));\r\n            String price = cursor.getString(cursor.getColumnIndexOrThrow(\"price\"));\r\n            int year = cursor.getInt(cursor.getColumnIndexOrThrow(\"year\"));\r\n            int month = cursor.getInt(cursor.getColumnIndexOrThrow(\"month\"));\r\n            int day = cursor.getInt(cursor.getColumnIndexOrThrow(\"day\"));\r\n\r\n            items.add(book + \" - \" + price + \"元 (\" + year + \"/\" + month + \"/\" + day + \")\");\r\n        }\r\n        cursor.close();\r\n\r\n        adapter.notifyDataSetChanged(); // 更新 Adapter\r\n    }\r\n\r\n    // 取得選中的類別\r\n    private String getSelectedType() {\r\n        if (radioButton1.isChecked()) return \"早餐\";\r\n        if (radioButton2.isChecked()) return \"午餐\";\r\n        if (radioButton3.isChecked()) return \"晚餐\";\r\n        if (radioButton4.isChecked()) return \"交通\";\r\n        if (radioButton5.isChecked()) return \"娛樂\";\r\n        if (radioButton6.isChecked()) return \"其他\";\r\n        return null;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/project_1224/bill.java b/app/src/main/java/com/example/project_1224/bill.java
+--- a/app/src/main/java/com/example/project_1224/bill.java	
++++ b/app/src/main/java/com/example/project_1224/bill.java	
+@@ -3,6 +3,8 @@
+ import android.database.Cursor;
+ import android.database.sqlite.SQLiteDatabase;
+ import android.os.Bundle;
++import android.view.View;
++import android.widget.AdapterView;
+ import android.widget.ArrayAdapter;
+ import android.widget.Button;
+ import android.widget.EditText;
+@@ -20,7 +22,7 @@
+ 
+     private EditText ed_price;
+     private RadioButton radioButton1, radioButton2, radioButton3, radioButton4, radioButton5, radioButton6;
+-    private Button  btn_insert, btn_delete;
++    private Button btn_insert, btn_delete;
+     private ListView listView;
+     private ArrayAdapter<String> adapter;
+     private ArrayList<String> items = new ArrayList<>();
+@@ -52,7 +54,6 @@
+         monthSpinner = findViewById(R.id.spinner_month);
+         daySpinner = findViewById(R.id.spinner_day);
+ 
+-
+         btn_insert = findViewById(R.id.btn_insert);
+         btn_delete = findViewById(R.id.btn_delete);
+         listView = findViewById(R.id.listView);
+@@ -92,8 +93,6 @@
+             }
+         });
+ 
+-
+-
+         // 刪除功能
+         btn_delete.setOnClickListener(view -> {
+             String type = getSelectedType();
+@@ -146,16 +145,67 @@
+         monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+         monthSpinner.setAdapter(monthAdapter);
+ 
+-        // 設置日期範圍
++        // 初始化日期範圍
++        updateDaySpinner(2023, 1);
++
++        // 設定年份與月份的監聽器
++        yearSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
++            @Override
++            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
++                int selectedYear = Integer.parseInt(yearSpinner.getSelectedItem().toString());
++                int selectedMonth = Integer.parseInt(monthSpinner.getSelectedItem().toString());
++                updateDaySpinner(selectedYear, selectedMonth);
++            }
++
++            @Override
++            public void onNothingSelected(AdapterView<?> parent) {
++            }
++        });
++
++        monthSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
++            @Override
++            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
++                int selectedYear = Integer.parseInt(yearSpinner.getSelectedItem().toString());
++                int selectedMonth = Integer.parseInt(monthSpinner.getSelectedItem().toString());
++                updateDaySpinner(selectedYear, selectedMonth);
++            }
++
++            @Override
++            public void onNothingSelected(AdapterView<?> parent) {
++            }
++        });
++    }
++
++    // 動態更新日期選單
++    private void updateDaySpinner(int year, int month) {
+         ArrayList<String> days = new ArrayList<>();
+-        for (int i = 1; i <= 31; i++) {
++        int maxDay = getDaysInMonth(year, month);
++
++        for (int i = 1; i <= maxDay; i++) {
+             days.add(String.valueOf(i));
+         }
++
+         ArrayAdapter<String> dayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, days);
+         dayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+         daySpinner.setAdapter(dayAdapter);
+     }
+ 
++    // 獲取指定年份和月份的最大日期數
++    private int getDaysInMonth(int year, int month) {
++        if (month == 2) { // 2 月
++            return isLeapYear(year) ? 29 : 28;
++        } else if (month == 4 || month == 6 || month == 9 || month == 11) { // 30 天的月份
++            return 30;
++        } else { // 31 天的月份
++            return 31;
++        }
++    }
++
++    // 判斷是否為閏年
++    private boolean isLeapYear(int year) {
++        return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
++    }
++
+     // 更新 ListView 資料
+     private void updateListView() {
+         items.clear(); // 清空舊數據
