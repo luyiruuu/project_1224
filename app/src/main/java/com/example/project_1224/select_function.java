@@ -19,7 +19,7 @@ public class select_function extends AppCompatActivity {
         Button billButton = findViewById(R.id.btn_bill);
         Button ViewLocationButton = findViewById(R.id.btn_ViewLocation);
         Button chartButton = findViewById(R.id.btn_chart);
-        Button goalButton = findViewById(R.id.btn_goal);
+        Button StockButton = findViewById(R.id.btn_Stock);
 
         // 設置按鈕點擊事件
         billButton.setOnClickListener(new View.OnClickListener() {
@@ -49,11 +49,11 @@ public class select_function extends AppCompatActivity {
             }
         });
 
-        goalButton.setOnClickListener(new View.OnClickListener() {
+        StockButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // 跳轉到 bill Activity
-                Intent intent = new Intent(select_function.this, bill.class);
+                Intent intent = new Intent(select_function.this, API.class);
                 startActivity(intent);
             }
         });
