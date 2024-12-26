@@ -4,16 +4,37 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#E1DAD3"
     tools:context=".API">
+
 
     <Button
         android:id="@+id/btn_search"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="查詢台股"
+        android:backgroundTint="#D7A49A"
+        android:textColor="@android:color/black"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btn_us"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"/>
+    <!-- 與美股按鈕保持間距 -->
+    <!-- 垂直鏈設定 -->
+
+    <!-- 查詢美股按鈕 -->
+    <Button
+        android:id="@+id/btn_us"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="查詢美股"
+        android:backgroundTint="#D7A49A"
+        android:textColor="@android:color/black"
+        app:layout_constraintTop_toBottomOf="@id/btn_search"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintVertical_chainStyle="packed" /> <!-- 垂直鏈設定 -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

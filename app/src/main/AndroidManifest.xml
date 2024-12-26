@@ -46,8 +46,9 @@
             android:name=".MyDBHelper"
             android:exported="false" /> <!-- 使用 Google 地圖 API 金鑰 -->
         <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="MAPS_API_KEY" /> <!-- 支援 Apache HTTP -->
+        android:name="com.google.android.geo.API_KEY"
+        android:value="MAPS_API_KEY" /> <!-- 支援 Apache HTTP -->
+
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
